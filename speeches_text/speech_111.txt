@@ -1,0 +1,4 @@
+<p data-HoCid="6081439" data-originallang="en">We have a motion to adjourn debate on this motion, which is not debatable.</p>
+<p class="procedural" data-HoCid="6081440">(Motion agreed to)</p>
+<p data-HoCid="6081441" data-originallang="en"> The debate on this motion is adjourned.</p>
+<p data-HoCid="6081442" data-originallang="en">Ms. Gazan, you have the floor.</p>

@@ -1,0 +1,7 @@
+<p data-HoCid="7735656" data-originallang="en">Thank you.</p>
+<p data-HoCid="7735657" data-originallang="en">Seeing no further discussion, I will call a recorded vote on the amendment of Ms. Gazan.</p>
+<p class="procedural" data-HoCid="7735658">(Amendment agreed to: yeas 10; nays 1)</p>
+<p data-HoCid="7735659" data-originallang="en"> We will now vote on clause 14 as amended.</p>
+<p data-HoCid="7735660" data-originallang="en">We'll have a recorded vote, clerk.</p>
+<p class="procedural" data-HoCid="7735661">(Clause 14 as amended agreed to: yeas 7; nays 0 [<em>See Minutes of Proceedings</em>])</p>
+<p data-HoCid="7735662" data-originallang="en"> We now have a proposed new clause, 14.1.</p>

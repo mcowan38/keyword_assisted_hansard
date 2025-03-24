@@ -1,0 +1,3 @@
+<p data-HoCid="6452054" data-originallang="en">Okay, thanks, Chair.</p>
+<p data-HoCid="6452055" data-originallang="en">Mr. Jones, you identified China, Russia, North Korea and Iran as threats to Canada. You probably know that recently Israeli and U.S. researchers found that China was rerouting Internet traffic through state-controlled services. </p>
+<p data-HoCid="6452056" data-originallang="en">Would you comment, if you can, on whether you think that's espionage or theft of intellectual property, and what the purpose would be, and also whether CSE has acted or what action CSE has taken to stop China from rerouting Canadian Internet traffic?</p>

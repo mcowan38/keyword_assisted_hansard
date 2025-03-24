@@ -1,0 +1,4 @@
+<p data-HoCid="6376150" data-originallang="fr">I think Ms. Chabot's screen is frozen.</p>
+<p data-HoCid="6376151" data-originallang="fr">If so, no one can hear her.</p>
+<p data-HoCid="6376152" data-originallang="en">Madame Chabot, I'm not sure if you can hear me, but we are going to go to Ms. Gazan. If you can get your technical problems resolved, we'll come back to you for a question before we wrap up.</p>
+<p data-HoCid="6376153" data-originallang="en"> Ms. Gazan, you have two minutes.</p>

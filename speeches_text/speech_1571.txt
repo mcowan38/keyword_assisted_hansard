@@ -1,0 +1,2 @@
+<p data-HoCid="7134967" data-originallang="en">Well, I'll give you an example. </p>
+<p data-HoCid="7134968" data-originallang="en">There was a lawsuit about NSO's Pegasus. It was used to hack into phones of people who were critical of the State of Israel. We've seen that technology used in different ways. We know that Clearview is one particular thing, but there's certainly Cambridge Analytica and others. What has your office done to provide some kind of understanding about the nefarious use of artificial intelligence as it relates to threats to national security?</p>

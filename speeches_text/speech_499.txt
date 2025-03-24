@@ -1,0 +1,3 @@
+<p data-HoCid="6429132" data-originallang="en">Thank you, Dr. Christensen.</p>
+<p data-HoCid="6429133" data-originallang="fr">Thank you, Ms. Chabot.</p>
+<p data-HoCid="6429134" data-originallang="en">Next we'll have Ms. Gazan, please, for six minutes.</p>

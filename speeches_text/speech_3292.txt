@@ -1,0 +1,4 @@
+<p data-HoCid="8134114" data-originallang="fr">Thank you, Mr. Chair.</p>
+<p data-HoCid="8134115" data-originallang="fr">Mr. Shee, I'd like to continue with you.</p>
+<p data-HoCid="8134116" data-originallang="fr">Yesterday, CBC presented a report on artificial intelligence in the service of war. He was referring to the use of artificial intelligence and Gospel software by the Israeli army to better target the facilities assigned to Hamas. However, this technology increases the number of civilian casualties, according to experts, because there is less human interaction behind every decision made before going on the offensive.</p>
+<p data-HoCid="8134117" data-originallang="fr">In that case, is there some slippage in artificial intelligence? How can we regulate these practices to save human lives?</p>

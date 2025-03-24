@@ -1,0 +1,4 @@
+<p data-HoCid="6376022" data-originallang="en">Thank you, Mr. Johnson.</p>
+<p data-HoCid="6376023" data-originallang="fr">Thank you, Ms. Chabot.</p>
+<p data-HoCid="6376024" data-originallang="en">Next we have Ms. Gazan.</p>
+<p data-HoCid="6376025" data-originallang="en">You have the floor for two and a half minutes.</p>

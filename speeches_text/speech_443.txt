@@ -1,0 +1,4 @@
+<p data-HoCid="6389252" data-originallang="en"> Thank you, Chief.</p>
+<p data-HoCid="6389253" data-originallang="fr">Thank you, Ms. Chabot.</p>
+<p data-HoCid="6389254" data-originallang="en">The last questioner for this evening is Ms. Gazan.</p>
+<p data-HoCid="6389255" data-originallang="en"> You have the floor for two and a half minutes.</p>

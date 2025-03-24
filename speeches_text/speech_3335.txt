@@ -1,0 +1,4 @@
+<p data-HoCid="8150205" data-originallang="en"> How about this, Ms. Curran?</p>
+<p data-HoCid="8150206" data-originallang="en">The article published by The New York Times on October 24 of this year states:</p>
+<blockquote><p data-HoCid="8150207" data-originallang="en"> ...Meta had “designed psychologically manipulative product features to induce young users' compulsive and extended use” of platforms like Instagram. The company's algorithms were designed to push children and teenagers into rabbit holes of toxic and harmful content, the states said, with features like “infinite scroll” and persistent alerts used to hook young users. The attorneys general also charged Meta with violating a federal children's online privacy law, accusing it of unlawfully collecting “the personal data of its youngest users” without [parental consent]. </p>
+</blockquote>

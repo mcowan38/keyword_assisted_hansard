@@ -1,0 +1,5 @@
+<p data-HoCid="7747781" data-originallang="en">Mr. Clerk, we'll call a recorded vote on the ruling of the chair on the inadmissibility of Madame Bérubé's amendment.</p>
+<p class="procedural" data-HoCid="7747782">(Ruling of the chair sustained: yeas 6; nays 5)</p>
+<p data-HoCid="7747783" data-originallang="en"> The ruling of the chair has been upheld. We will now move to an amendment from Madame Gazan, I believe.</p>
+<p data-HoCid="7747784" data-originallang="en">No? </p>
+<p data-HoCid="7747785" data-originallang="en">It's Madame Bérubé. Madame Bérubé, you have the floor.</p>

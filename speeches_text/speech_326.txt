@@ -1,0 +1,3 @@
+<p data-HoCid="6388936" data-originallang="fr">Excuse me, Ms. Chabot, but your time is up.</p>
+<p data-HoCid="6388937" data-originallang="fr">Actually, I was about to give the floor to Ms. Gazan, but my microphone was off. Clearly, you aren't the only one having technical difficulties.</p>
+<p data-HoCid="6388938" data-originallang="en">Ms. Gazan, you have two-and-a-half minutes.</p>

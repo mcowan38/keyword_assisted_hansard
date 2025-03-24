@@ -1,0 +1,3 @@
+"0","keyword_plot <- visualize_keywords(docs = keyATM_docs, keywords = keywords)"
+"2","Warning: [38;5;255mA keyword is pruned because it does not appear in the documents: IDF[39m"
+"0","keyword_plot  # Display the plot"

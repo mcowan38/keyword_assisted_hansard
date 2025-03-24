@@ -1,0 +1,3 @@
+<p data-HoCid="6428873" data-originallang="fr">Thank you, Ms. Chabot.</p>
+<p data-HoCid="6428874" data-originallang="en"> Thank you, Mr. Byers.</p>
+<p data-HoCid="6428875" data-originallang="en">Next is Ms. Gazan, please, for six minutes.</p>

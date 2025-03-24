@@ -1,0 +1,11 @@
+<p data-HoCid="8173112" data-originallang="en">Thank you.</p>
+<p data-HoCid="8173113" data-originallang="en">Seeing no further discussion, I will ask the clerk for a recorded vote on amendment NDP-2.</p>
+<p class="procedural" data-HoCid="8173114">(Amendment agreed to: yeas 6; nays 0)</p>
+<p data-HoCid="8173115" data-originallang="en"> Shall clause 8 carry as amended?</p>
+<p class="procedural" data-HoCid="8173116">(Clause 8 as amended agreed to)</p>
+<p data-HoCid="8173117" data-originallang="en"> The next grouping is of clauses 9, 10, 11, 12 and 13 of the bill.</p>
+<p data-HoCid="8173118" data-originallang="en"> There have been no amendments received. With unanimous consent, I will ask for an indication of carrying clauses 9 through 13 as presented. I see no dissension.</p>
+<p class="procedural" data-HoCid="8173119">(Clauses 9 to 13 inclusive agreed to)</p>
+<p class="procedural" data-HoCid="8173120">(On clause 14)</p>
+<p data-HoCid="8173121" data-originallang="en"> On clause 14, we have amendment NDP-3.</p>
+<p data-HoCid="8173122" data-originallang="en"> Go ahead, Ms. Gazan.</p>

@@ -1,0 +1,10 @@
+<p data-HoCid="8588898" data-originallang="fr">Is that correct, Ms. Gaudreau? Yes? Okay.</p>
+<p data-HoCid="8588899" data-originallang="en"> Colleagues, I'm looking around the room. No one is asking to speak to this.</p>
+<p data-HoCid="8588900" data-originallang="en"> I am going to ask the clerk to call the vote on the amendment proposed by Mr. Berthold.</p>
+<p class="procedural" data-HoCid="8588901">(Amendment agreed to: yeas 11; nays 0 [<em>See Minutes of Proceedings</em>])</p>
+<p data-HoCid="8588902" data-originallang="en"> Colleagues, I'm looking around the room. I believe everyone understands that we have an amended motion. We now need to either continue debate, which it doesn't look like anyone is interested in doing, or call a vote on the motion as amended.</p>
+<p class="procedural" data-HoCid="8588903">(Motion as amended agreed to: yeas 11; nays 0 [<em>See Minutes of Proceedings</em>])</p>
+<p data-HoCid="8588904" data-originallang="en"> Colleagues, as my people say, <em>mazel tov</em>. We have accomplished a feat here. <em>Mazel tov</em> simply means congratulations. I don't know if we have a Yiddish translator back there.</p>
+<p data-HoCid="8588905" data-originallang="en">Colleagues, I am now going to suspend briefly, because we're going to move in camera to discuss committee business. We know we have lots of things to do. I'm just going to allow the clerk and everybody else to kind of reset for a moment.</p>
+<p data-HoCid="8588906" data-originallang="en">Thank you for your co-operation. We're going to to suspend. We will resume in camera and begin a conversation on committee business.</p>
+<p class="procedural" data-HoCid="8588907">[<em>Proceedings continue in camera</em>]</p>

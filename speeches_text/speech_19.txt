@@ -1,0 +1,4 @@
+<p data-HoCid="6055676" data-originallang="en"> Your motion is in order, Ms. Gazan. Is there any discussion on the motion?</p>
+<p class="procedural" data-HoCid="6055677">(Motion agreed to)</p>
+<p data-HoCid="6055678" data-originallang="en"> Is there any further business to come before the meeting? </p>
+<p data-HoCid="6055679" data-originallang="en">Seeing none, I'll entertain a motion for adjournment.</p>

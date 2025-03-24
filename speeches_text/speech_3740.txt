@@ -1,0 +1,5 @@
+<p data-HoCid="8300161" data-originallang="en"> I call this meeting to order.</p>
+<p data-HoCid="8300162" data-originallang="en">We are meeting in public.</p>
+<p data-HoCid="8300163" data-originallang="en">Welcome to meeting number 95 of the House of Commons Standing Committee on Citizenship and Immigration.</p>
+<p data-HoCid="8300164" data-originallang="en">Today for a briefing on the temporary immigration measures initiated in response to the ongoing conflicts in Sudan and Gaza, we have the Minister of Immigration, Refugees and Citizenship, the Honourable Marc Miller, with departmental officials.</p>
+<p data-HoCid="8300165" data-originallang="en">Madam Kwan, do you have something to say?</p>

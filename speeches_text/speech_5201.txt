@@ -1,0 +1,6 @@
+<p data-HoCid="8679019" data-originallang="en"> I'd like to call this meeting to order. </p>
+<p data-HoCid="8679020" data-originallang="en">Welcome to meeting 123 of the House of Commons Standing Committee on Foreign Affairs and International Development. </p>
+<p data-HoCid="8679021" data-originallang="en">Today's meeting is taking place in a hybrid format. All witnesses have completed the required connection tests in advance of the meeting. </p>
+<p data-HoCid="8679022" data-originallang="en">I'd like to remind the participants and the witnesses of the following. Please wait until I recognize you by name before speaking. All comments should be addressed to the chair. For those members who are joining us virtually, please raise your hand if you wish to speak. </p>
+<p data-HoCid="8679023" data-originallang="en">Today, pursuant to Standing Order 108(2) and the motion adopted by the committee on Thursday, September 19, 2024, the committee is commencing its study of Canada's advancement of a two-state solution. </p>
+<p data-HoCid="8679024" data-originallang="en">Go ahead, Mr. Bergeron.</p>

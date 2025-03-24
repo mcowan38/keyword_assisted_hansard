@@ -1,0 +1,5 @@
+<p data-HoCid="6055598" data-originallang="en">Is there any discussion on the amendment?</p>
+<p class="procedural" data-HoCid="6055599">(Amendment agreed to)</p>
+<p data-HoCid="6055600" data-originallang="en"> Is there any discussion on the motion as amended?</p>
+<p class="procedural" data-HoCid="6055601">(Motion as amended agreed to [<em>See Minutes of Proceedings</em>])</p>
+<p data-HoCid="6055602" data-originallang="en"> Now, Ms. Gazan, I recognize you for the next order of business.</p>
