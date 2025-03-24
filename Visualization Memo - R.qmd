@@ -1,52 +1,62 @@
 ---
 title: "SOCC70: Visualization Memo"
 author: "Mike Cowan"
-format: 
-  html:
-    embed-resources: true
-    df-print: paged
+format:
+  pdf:
+    documentclass: article
+    toc: true
+    number-sections: true
+    keep-tex: true
 editor: visual
 ---
 
-## 1. Packages & CSV conversion (optional)
+# Introduction
+
+This memo reports on an exploratory project using keyword-assisted topic modeling (keyATM) to examine how Canadian parliamentary debates since 2019 discuss Israel–Palestine–related issues. The analysis initially aimed to assess broader Jewish discourse in Parliament, particularly whether antisemitism was framed as a legal or minority-rights concern.
+
+Due to time constraints and difficulties in stabilizing certain topics (for instance, those around Holocaust commemoration or minority rights), the scope has been refined to three guided topics—Legal Action, Israel, and Palestine—and five additional unsupervised topics that emerged from the corpus. In parallel, a Latent Dirichlet Allocation (LDA) model with eight topics was run on the same data to compare purely unsupervised findings with keyword-guided results. All results presented here are cross-sectional, relying on keyATM’s base model visualizations and standard LDA outputs, rather than incorporating any time or covariate effects.
+
+Traditional Latent Dirichlet Allocation (LDA), is an unsupervised machine learning technique used to identify themes (topics) within a large collection of textsby detecting patterns in word co-occurrences. For example, if words like "genocide", "Shoah", and "concentration camp" frequently appear together, LDA might cluster words into a topic that a researcher could interpret as relating to Holocaust discourse, by assigning a probability distribution to each document. However, interpretation is left to the researcher, who must derive meaning from co-occurring terms.
+
+Keyword-assisted topic modeling, by contrast, directs the algorithm to prioritize user-predefined keywords to help define topics, making the model more interpretable. Instead of relying purely on word frequency and co-occurrence, keyATM starts with a set of seed words that guide topic identification, and while keywords do not dictate topics outright, they influence clustering by emphasizing documents where these terms appear prominently, by balances weighting, frequency, and word co-occurrence to refine topics dynamically.
+
+Given the volume of parliamentary debates—occurring daily and aggregated into millions of speeches in the Hansard database—manual qualitative analysis is infeasible. Instead, we employ techniques to visualize the data using the keyATM package (R). Keyword frequency distributions highlight recurring themes, prevalence of each topic in the corpus illustrate relative proportion of the discussion, model fit diagnositics plots (e.g., log-likelihood and perplexity), document-topic distribution plots, and top-terms tables illustrating the most common terms per topic.
+
+## Packages
 
 ```{r}
 library(tidyverse)
 library(quanteda)
+library(quanteda.textmodels)
+library(topicmodels)
 library(keyATM)
 library(readtext)
-
-# Define output folder
-# output_folder <- "speeches_text"
-# dir.create(output_folder, showWarnings = FALSE)  # Create directory if it doesn't exist
-
-# Save each speech as .txt
-# for (i in 1:nrow(data)) {
-#   file_name <- paste0(output_folder, "/speech_", i, ".txt")  
-#   writeLines(enc2utf8(data$speechtext[i]), file_name, useBytes = TRUE)  # Ensure UTF-8 encoding
-# }
+library(tibble)
+library(gt) # visually appealing tables
 ```
 
-## 2. Data
+# Data Preparation and Methodology
+
+The Hansard transcripts were acquired from OpenParliament for the period 2019 to the present, filtered for speeches containing keywords associated with Jewish issues, including Israel–Palestine. The raw text was processed in R using the quanteda package. This included converting the text to lowercase, removing punctuation and numbers, and stripping out generic and parliamentary-specific stopwords. Documents with no remaining tokens were discarded. The final document-feature matrix (DFM) was trimmed to exclude words that appeared extremely rarely or in very few documents. From there, two modeling paths were taken.
+
+The first approach employed standard LDA (with eight topics) on a cleaned document-term matrix derived from the DFM. The second approach used keyATM, specifying three keyword-guided topics (Legal Action, Israel, Palestine) and allowing five additional unsupervised topics. keyATM runs a collapsed Gibbs sampler–what is this– iteratively refining which words and documents belong to each topic (Eshima et al., 2024). Throughout the process, we relied on built-in functions for keyword visualization, topic proportion plots, model fit diagnostics, alpha estimates, and top-word summaries.
 
 ```{r}
 # Load Data (modify path as necessary)
 data <- read.csv("./data/openparliament_keyATM.csv", stringsAsFactors = FALSE)
-
-# Ensure speechdate is in Date format
-data$speechdate <- as.Date(data$speechdate)
-```
-
-## 3. Preprocessing
-
-```{r}
-# Read text files (if applicable)
 raw_docs <- readtext("speeches_text/*.txt", encoding = "UTF-8")
 
 # Convert to corpus
 key_corpus <- corpus(raw_docs, text_field = "text")
+```
 
-# Tokenization & Cleaning (quanteda best practices)
+## 1. Create a document-feature matrix & remove empty documents post-cleaning
+
+```{r}
+# Source the custom stopwords script
+source("./stop_words/custom_stopwords.R")
+
+# Tokenize and clean, using imported stopword list
 tokens_clean <- tokens(
   key_corpus,
   remove_punct = TRUE,
@@ -56,385 +66,273 @@ tokens_clean <- tokens(
   remove_url = TRUE
 ) %>%
   tokens_tolower() %>%
-  tokens_remove(
-    c(stopwords("english"), "shall", "may", "upon", "without", "canada",
-      "canadian", "canadians") # Corpus-specific stopwords
-  ) %>%
+  tokens_remove(pattern = custom_stops) %>%
   tokens_select(min_nchar = 3)
 
-# Remove metadata artifacts (explicit cleaning)
-unwanted_terms <- c("data-hocid", "data-originallang", "href", "title", "bills", 
-                    "minister", "committee", "politicians", "motion", "order", 
-                    "government", "state", "house", "member", "prime")  
-tokens_clean <- tokens_remove(tokens_clean, pattern = unwanted_terms)
-
-# Convert to Document-Feature Matrix (DFM)
+# Convert to a Document-Feature Matrix and trim low-frequency terms
 dfm_clean <- dfm(tokens_clean) %>%
-  dfm_trim(min_termfreq = 5, min_docfreq = 2)  # Trim low-frequency terms
+  dfm_trim(min_termfreq = 3, min_docfreq = 3) # Adjust thresholds as needed
 
-# Check top features to verify cleaning worked
-topfeatures(dfm_clean, 20)
+# Remove empty docs
+dfm_clean <- dfm_subset(dfm_clean, ntoken(dfm_clean) > 0)
+
+# Check the top features for stopwords
+# topfeatures(dfm_clean, 20)
 ```
 
-## 4. Define Keywords
-
--   The keyATM framework allows you to **seed specific topics with keyword constraints**, meaning that topics will be structured around these predefined terms, guiding the model towards specific areas of interest rather than relying solely on unsupervised topic extraction.
+## 2. Convert dfm to keyATM format
 
 ```{r}
-# Define keywords for Topic Modeling
-keywords <- list(
-  antisemitism = c("antisemitism", "racism", "discrimination", "Jew-hatred", "anti-Jewish", "prejudice"),
-  israel_palestine = c("israel", "palestine", "zionism", "West Bank", "Gaza", "settlements", "two-state"),
-  holocaust = c("holocaust", "nazi", "genocide", "Shoah", "concentration camp", "Holocaust denial"),
-  jewish_identity = c("jewish", "judaism", "diaspora", "Jewish heritage", "Hebrew", "kashrut", "synagogue", "Yiddish")
-)
-
-```
-
-## 5. Check Keyword Frequency
-
--   If a keyword appears **too infrequently**, it may not influence the model effectively.
--   Remove or adjust rare keywords before running keyATM.
-
-```{r}
-# Convert DFM into keyATM format
 keyATM_docs <- keyATM_read(texts = dfm_clean)
-
-# Visualize keyword frequency
-key_viz <- visualize_keywords(docs = keyATM_docs, keywords = keywords)
-key_viz  # Plot frequency of each keyword
-
-# Save plot
-# save_fig(key_viz, "figures/keyword_frequency.pdf", width = 6.5, height = 4)
 ```
 
-### **a) Observations:**
+We define three substantive topics of interest, each with a small set of guiding keywords. These keywords were chosen based on domain knowledge of Jewish-related parliamentary discourse, with consideration of prior iterations which included topics (and keywords) that yielded indiscernable results (i.e., Holocaust, Jewish identity, minority rights):
 
-1.  **Ranking and Proportion Trends:**
+-   **Legal Action:** hate, crime, justice, prosecution, court.
 
-    -   Each keyword's ranking is plotted along the **x-axis** (from most to least frequent).
+-   **Israel:** Israel, Zionism, Zionist, IDF, war, military, airstrike, defense, operation, security.
 
-    -   The **y-axis** represents the **proportion of times** each keyword appears in the dataset.
+-   **Palestine:** Palestine, Palestinian, Gaza, refugee, displacement, blockade, humanitarian, aid, genocide.
 
-2.  **Topic-Based Keyword Distribution:**
+We store these in a named list for keyATM.
 
-    -   **Topic 1: Antisemitism (red)**
-
-        -   Keywords **"racism," "discrimination," and "antisemitism"** are dominant.
-
-        -   "Racism" appears more frequently than "antisemitism," which suggests antisemitism-related discourse might be framed within a **broader discrimination narrative**.
-
-    -   **Topic 2: Israel-Palestine (green)**
-
-        -   Keywords **"Israel" and "Palestine"** have the highest proportions.
-
-        -   "Zionism" appears with much lower frequency, possibly indicating **less explicit discussion of ideological aspects** in comparison to direct geographic/political mentions.
-
-    -   **Topic 3: Holocaust (blue)**
-
-        -   **"Genocide" and "Holocaust"** are closely ranked, showing that discussions of the Holocaust are linked to **broader themes of genocide**.
-
-        -   "Nazi" appears the least within this topic, indicating that Holocaust discussions may focus on **historical events rather than perpetrators**.
-
-    -   **Topic 4: Jewish Identity (purple)**
-
-        -   **"Community" and "Jewish"** are more frequent than "Judaism," which suggests discourse around Jewish identity may be **framed in communal/social terms rather than religious**.
-
-3.  **Steep Decline in Proportion:**
-
-    -   **Sharp drops in keyword frequency** within each topic suggest that **each topic is dominated by one or two major terms**.
-
-    -   For instance, **“Israel” dominates the Israel-Palestine topic**, whereas **"community" dominates Jewish Identity**.
-
-    -   This implies that certain terms **may disproportionately shape topic modeling outputs**, potentially leading to **skewed topic representation**.
-
-### **b) Suggestions for Refinement:**
-
-1.  **Balance Keyword Frequencies Across Topics:**
-
-    -   Some topics rely heavily on **one dominant keyword** (e.g., "Israel" or "Community").
-
-    -   Consider adding **synonyms** or related phrases to balance keyword weights and **avoid single-word dominance**.
-
-2.  **Explore Context of Lower-Frequency Keywords:**
-
-    -   Keywords like "nazi," "zionism," and "judaism" appear infrequently.
-
-    -   Check whether these terms are **too restrictive** or if they appear in different forms (e.g., "Nazism" instead of "Nazi").
-
-3.  **Test with Adjusted Keyword Lists:**
-
-    -   If the goal is **broader thematic coverage**, consider adjusting keyword groups by adding variations.
-
-    -   e.g., Add "Jewish faith" or "Jewish belief" under **Jewish Identity** if religion is underrepresented.
-
-## 6. keyATM Base (Latent Dirichlet Allocation + Keywords)
-
--   **Use case:** standard keyword-assisted topic modeling.
-
--   Good for interpreting latent themes in speeches.
+## 3. Keyword List
 
 ```{r}
-model_base <- keyATM(docs = keyATM_docs, keywords = keywords, no_keyword_topics = 3, model = "base")
-# Save Model
-saveRDS(model_base, file = "./models/keyATM_base.rds")
+keywords <- list(
+  LegalAction = c("hate", "crime", "justice", "prosecution", "court"),
+  Israel = c(
+    "israel",
+    "israeli",
+    "zionism",
+    "zionist",
+    "IDF",
+    "war",
+    "military",
+    "airstrike",
+    "defense",
+    "operation",
+    "security"
+  ),
+  Palestine = c(
+    "palestine",
+    "palestinian",
+    "gaza",
+    "refugee",
+    "displacement",
+    "blockade",
+    "humanitarian",
+    "aid",
+    "genocide"
+  )
+)
 ```
 
-## 7. keyATM Covariate Model (analyzing metadata influence)
+We ensure these keywords appear a reasonable number of times in the corpus; typically, each should constitute \>0.1% of all tokens​ (Eshima et al., 2024 ). Very rare keywords contribute little to the model, so terms that appeared extremely infrequently, (for example, "Shoah" in prior iterations), were dropped from the model. However, some words irrelevant words (\>0.1%) remained in the analysis.
 
--   **Use Case:** If you want to see how different political parties talk about topics.
--   Good for party-level topic variations.
+With documents and keywords ready, we fit the base keyATM model (no covariates, no time component). We specify three keyword topics (as defined above) and choose to allow five non-keyword topics.
+
+# Standard LDA
+
+## LDA Model
 
 ```{r}
-model_covariate <- keyATM(docs = keyATM_docs, keywords = keywords, model = "covariates", covariates = data$speaker_party)
-# Save Model
-saveRDS(model_covariate, file = "models/keyATM_covariate.rds")
+# Convert DFM to DTM (to be used in LDA)
+dtm_clean <- convert(dfm_clean, to = "topicmodels")
+
+# Standard LDA
+lda_model <- LDA(
+  dtm_clean,
+  k = 8,
+  method = "VEM",
+  control = list(
+    seed = 123,
+    em   = list(iter.max = 1500)
+  )
+)
 ```
 
-## 8. keyATM Dynamic Model
-
--   **Use** case: if you want to explicitly track how topics evolve over time.
--   **Good For:** Historical trend analysis.
+After fitting, we save the model for reproducibility.
 
 ```{r}
-model_dynamic <- keyATM(docs = keyATM_docs, keywords = keywords, model = "dynamic", time_index = data$speechdate)
-# Save Model
-saveRDS(model_dynamic, file = "models/keyATM_dynamic.rds")
+# Save LDA model
+saveRDS(lda_model, "./models/lda_model_hansard.rds")
 ```
 
-## 9. Model Evaluation & Visualization
-
-### **a) Document-Topic Distribution & Topic-Word Distribution**
+## Table 1: LDA Top 10 Words Table
 
 ```{r}
-# Extract document-topic distribution (theta) & topic-word distribution (phi)
-doc_topic_dist <- model_base$theta  # Document-topic distribution
-word_topic_dist <- model_base$phi   # Topic-word distribution
+# Extract top 10 terms per topic (topics as rows)
+top_terms_mat <- terms(lda_model, 10)
 
-# Display dimensions of both matrices
-dim(doc_topic_dist)  # Rows: Documents, Columns: Topics
-dim(word_topic_dist) # Rows: Topics, Columns: Words
+# Convert matrix to a data frame and pivot to have topics as columns
+top_terms_df <- as.data.frame(top_terms_mat, stringsAsFactors = FALSE)
 
-# Save distributions for further use
-saveRDS(doc_topic_dist, file = "models/document_topic_distribution.rds")
-saveRDS(word_topic_dist, file = "models/topic_word_distribution.rds")
+# Convert row names (topics) into a column
+top_terms_df <- rownames_to_column(top_terms_df, var = "Term")
+
+# Reshape to have topics as columns
+top_terms_df <- pivot_longer(top_terms_df, cols = -Term, names_to = "Topic", values_to = "Word") %>%
+  pivot_wider(names_from = Topic, values_from = Word)
+
+# Create GT table
+gt_table_lda <- top_terms_df %>%
+  gt() %>%
+  tab_header(
+    title = "Top 10 Terms per Unsupervised Topic",
+    subtitle = "LDA (k = 8) using VEM method"
+  ) %>%
+  tab_style(
+    style = cell_text(align = "center"),
+    locations = cells_body(columns = everything())
+  )
+
+# Display the table
+gt_table_lda
 ```
 
-### b) Top Words Per Topic
+-   **Note:** Table 1 shows the eight-topic LDA solution, listing the top ten terms per topic. Many terms reference broad parliamentary issues—“budget,” “program,” “legislation,”—as well as policy or geopolitical matters such as “Ukraine,” “war,” and “housing.”
+
+Although LDA was seeded with no keywords, a few topics do contain references to Israel or antisemitism. For instance, one topic includes “anti-Semitism,” “children,” “Israel,” “community,” and “housing” in its top words, suggesting that parliamentary discussion sometimes lumps references to Jewish issues together with other domestic concerns. Another topic’s top words center on “meeting,” “online,” “support,” and “humanitarian,” implying occasional overlaps between humanitarian language and legislative processes. Broadly, topics 1 and 2 appear to focus on legislative processes, legal issues, and governance. Topics 3 and 8 address economic policy, budget considerations, and environmental issues. Topics 4 and 6 relate to foreign affairs, security, and the Israel-Palestine conflict. Topic 5 appears to highlights social welfare and humanitarian concerns, while topic 7 seemingly covers ethnic identity.
+
+Overall, the LDA results confirm that the corpus is quite broad, reflecting the diverse content in the Hansard; some topics concentrate on day-to-day parliamentary affairs or domestic policy, while others sporadically include references to conflict or Israel-Palestine issues. Although the LDA model occasionally surfaces terms related to Israel, Palestine, or antisemitism, these appear alongside references to Ukraine, indigenous issues, and other legislative matters–demonstrative of how unsupervised topic modeling can intermingle unrelated content if keywords are not guiding the process.
+
+# [keyATM]{.underline}
+
+## keyATM Model
 
 ```{r}
-# Display the top words for each topic
-top_words(model_base, n = 10, measure = "probability", show_keyword = TRUE)
-
-# Save top words list
-write.csv(top_words(model_base, n = 10), "outputs/top_words_per_topic.csv", row.names = FALSE)
+set.seed(123)
+model_out <- keyATM(
+  docs              = keyATM_docs,
+  no_keyword_topics = 5, # additional topics beyond our keyword topics;
+                         # should help remove parliamentary noise.
+  keywords          = keywords,
+  model             = "base",
+  options           = list(seed = 123, iterations = 1500)
+)
 ```
 
-### c) Most Representative Documents Per Topic
+After fitting, we again save the model for reproducibility.
 
 ```{r}
-# Identify documents most representative of each topic
-top_docs(model_base)
-
-# Save top documents list
-write.csv(top_docs(model_base), "outputs/top_documents_per_topic.csv", row.names = FALSE)
+# Save keyATM model
+saveRDS(model_out, "./models/keyATM_model_hansard.rds")
 ```
 
-### **10. Model Fit Diagnostics**
+Now we interpret the results through visualization and model-checking using keyATM’s built-in functions.
 
-### a) Log-Likelihood and Perplexity
+# Visualizations
 
-1.  **Likelihood (Left Plot)**
+Before analyzing topics in depth, we examine the keyword frequency plot to verify our chosen keywords are well-represented. We use *visualize_keywords()* to plot the proportion of the corpus each keyword accounts for​–with each topic’s keywords plotted in order of their prevalence.
 
-    -   The log-likelihood **steadily increases** and **plateaus after \~1000 iterations**.
-
-    -   This is a **good sign** as it indicates the model is converging towards a stable **optimal point**.
-
-    -   **Early rapid increase (\~0-500 iterations)** suggests initial parameter adjustments, followed by a **slower improvement** as the model refines topic assignments.
-
-2.  **Perplexity (Right Plot)**
-
-    -   **Perplexity decreases sharply at the start** (\~first 500 iterations).
-
-    -   After this initial drop, it continues to decrease **gradually** and stabilizes beyond **1000 iterations**.
-
-    -   **Lower perplexity indicates better model performance**, meaning the model is becoming more confident in assigning words to topics.
+## Figure 1: Keyword Visualization
 
 ```{r}
-# Plot log-likelihood and perplexity to evaluate model convergence
-fig_modelfit <- plot_modelfit(model_base)
+keyword_plot <- visualize_keywords(docs = keyATM_docs, keywords = keywords)
+keyword_plot
+```
+
+-   **Note:** Figure 2 depicts the **keyword visualization**, showing how frequently each seed term appears in the corpus. “Hate” is among the more common Legal Action terms, while “Israel,” “war,” and “military” appear under the Israel topic, and “Palestine,” “refugee,” and “aid” fall under the Palestine topic. These lines confirm that all three guided topics have a meaningful presence in the speeches, though certain keywords (e.g., “airstrike,” “displacement”) with a proportion of \<0.1% are relatively rare–and thus, not meaningfully contributing to the model (Eshima et al., 2024).
+
+Next, we examine the overall prevalence of each topic in the corpus using keyATM’s *plot_topicprop()* function. This function plots the expected proportion of the entire corpus that each topic accounts for–in other words, it shows which themes dominate the parliamentary discourse on our selected issues.
+
+## Figure 2: Topic Proportion Plot
+
+```{r}
+topicprop_plot <- plot_topicprop(model_out)
+topicprop_plot
+```
+
+-   **Note:** Proportion of corpus comprised by each keyword, by topic (keywords with higher corpus proportion appear as larger bars). The Palestine topic accounts for a substantial share of the Israel–Palestine discourse, followed by Legal Action and Israel. Five other “Other” topics occupy the remainder of the parliamentary text, reflecting that a large fraction of the discussion remains unrelated to the specified keywords or extends beyond the conflict dimension. Notably, “Other_5” emerges as the single largest unsupervised topic, hinting at broad parliamentary content (e.g., “study,” “order,” “issue”) overshadowing our specific issues.
+
+## Figure 3: Model Fit
+
+```{r}
+# Check model fitting. If the model is working as expected, we would observe an increase trend for the log-likelihood and an decrease trend for the perplexity:
+fig_modelfit <- plot_modelfit(model_out)
 fig_modelfit
-
-# Save figure
-save_fig(fig_modelfit, "figures/base_modelfit.pdf", width = 7, height = 5)
 ```
 
--   **Log-likelihood increases and stabilizes**, indicating stable topic-word assignments.
--   **Perplexity decreases and levels off**, meaning improved predictive power.
--   The **smooth convergence** of both metrics suggests that **1500 iterations were sufficient**.
-
-### b) Priors for Document-Topic Distribution (α)
+## Figure 4: Estimated Alpha
 
 ```{r}
-# Visualizing alpha (prior for document-topic distribution)
-fig_alpha <- plot_alpha(model_base)
-fig_alpha
-
-# Save figure
-save_fig(fig_alpha, "figures/alpha_prior.pdf", width = 7, height = 5)
+# Visualize alpha, the prior for the document-topic distribution, and the probability that each topic uses keyword topic-word distribution. These should stabilize over time:
+plot_alpha(model_out)
 ```
 
--   **The model is performing well:**
+-   **Note:** Figure 3 and Figure 4 present model fit diagnostics (log-likelihood, perplexity) and estimated alpha (the document-topic prior), showing that the sampler converges by around iteration 1,000–1,200, with perplexity dropping sharply and alpha values stabilizing.
 
-    -   Each topic **adjusts and stabilizes** over time.
-
-    -   The **differences in α values** indicate some topics are more focused while others are more diffuse.
-
-    -   No extreme oscillations or unstable patterns, which suggests a well-calibrated model.
-
-### c) Probability of Keyword Usage in Each Topic (π)
+## Figure 5: Topic-Word Distribution Probability
 
 ```{r}
-# Visualizing π (probability that a topic uses keyword-based word distribution)
-fig_pi <- plot_pi(model_base)
-fig_pi
-
-# Save figure
-save_fig(fig_pi, "figures/pi_distribution.pdf", width = 7, height = 5)
+# Probability of words drawn from keyword topic-word distribution:
+plot_pi(model_out)
 ```
 
-1.  **Topic 4 (Jewish Identity) Has the Highest Keyword Influence**
+-   **Note:** Figure 5 highlights the probability of words being drawn from each keyword-guided **topic**, suggesting that the Palestine topic has the highest share, followed by Legal Action, then Israel. The height of each bar indicates the percentage of all words (or all content) in the corpus attributed to that topic–allowing a direct comparison of topic prevalence.
 
-    -   The **highest probability** (\~0.016) occurs in **Topic 4 (Jewish Identity)**.
-
-    -   This suggests that the model relies **heavily on the predefined keywords** for identifying words related to **Jewish identity**.
-
-    -   This could mean that **Jewish identity discourse is more keyword-driven** in the dataset.
-
-2.  **Other Topics Show Lower Reliance on Keywords**
-
-    -   **Topics 1 (Antisemitism), 2 (Israel-Palestine), and 3 (Holocaust)** have much **lower probabilities (\~0.003–0.006)**.
-
-    -   This suggests that for these topics, the model is finding **words beyond the given keywords**, indicating a **broader distribution of words**.
-
-3.  **Potential Over-Reliance on Topic 4 Keywords**
-
-    -   Since **Topic 4's probability is much higher**, this could suggest the keywords used for **Jewish Identity** are **very dominant** in this topic, or the **other topics rely more on contextual inference** rather than strict keyword association.
-
-## 10. Visualize Topic Prevalance
+## Table 2: Keyword Top Terms Table
 
 ```{r}
-# Compute topic proportions
-topic_distribution <- colMeans(model_base$theta)
+# Extract top 20 words per topic from keyATM model
+top_terms <- top_words(model_out, n = 10)
 
-# Convert to DataFrame
-topic_df <- data.frame(
-  Topic = paste0("Topic_", 1:length(topic_distribution)),
-  Proportion = topic_distribution
-)
+# Convert list to data frame (each topic as a column)
+top_terms_df <- as.data.frame(do.call(cbind, top_terms))
 
-# Plot topic prevalence
-ggplot(topic_df, aes(x = Topic, y = Proportion, fill = Topic)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Prevalence of Topics in KeyATM Model",
-       x = "Topic", y = "Average Proportion") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# Rename columns to match desired topic labels
+colnames(top_terms_df) <- c("Legal Action", "Israel", "Palestine", 
+                            paste0("UT ", seq_len(ncol(top_terms_df) - 3)))
+
+# Add term numbers as a row identifier
+top_terms_df <- tibble(Term = paste0("Term ", seq_len(nrow(top_terms_df))), top_terms_df)
+
+# Create gt table
+gt_table_keyATM <- top_terms_df %>%
+  gt() %>%
+  tab_header(
+    title = "Top 10 Terms per keyATM Topic",
+    subtitle = "keyATM Model: Guided & Unsupervised Topics (UT)"
+  ) %>%
+  tab_style(
+    style = cell_text(align = "center"),
+    locations = cells_body(columns = everything())
+  )
+
+gt_table_keyATM
 ```
 
-## 11. Time-Series Analysis of Topics
+-   **Note:** Table 2 displays the highest-probability words in each topic’s word distribution​, reveals that Legal Action is dominated by “hate,” “anti-Semitism,” and “Jewish". Israel, interestingly, features “Ukraine,” “war,” and "terrorist,” (with the term "Israel" appearing as the sixth term. Palestine includes “peace,” “humanitarian,” and "rights.” The additional unsupervised topics (labeled UT 1–5) capture other content that does not strongly match the guided keywords, often focusing on terms unrelated to our topic of focus (e.g., "cost," "energy,", "economy", etc.)
 
-### a) Topic Trends Over Time
+# Discussion and Limitations
 
-```{r}
-# Time-series trends of topic proportions
-fig_timetrend <- plot_timetrend(
-  model_dynamic, time_index_label = data$speechdate, xlab = "Year"
-)
-fig_timetrend
+The analysis remains exploratory and was constrained by limited time, newness to keyATM methodology, and an evolving set of seed keywords. Notably, the three chosen guided topics (Legal Action, Israel, Palestine) do not capture the entirety of Jewish-related issues in Parliament. While erlier attempts at including additional themes (e.g., Holocaust commemoration, minority rights) produced sparse or overlapping topics, the relatively large share of “Other” topics within the guided model indicates that many speeches include extraneous references or are not strictly about Israel–Palestine.
 
-# Save time-series plot
-save_fig(fig_timetrend, "figures/topic_trends_over_time.pdf", width = 7, height = 5)
-```
+On the one hand, the unsupervised LDA solution (with eight topics) highlights the broad thematic diversity of Hansard. Several topics in LDA intermingle references to Israel, antisemitism, or humanitarian concerns with more routine parliamentary matters—such as budget bills, domestic legislation, and references to Ukraine. This underscores that without guiding keywords, mentions of Israel–Palestine often appear alongside other geopolitical or policy debates, making it difficult to isolate purely conflict-related content.
 
-### b) Topic Trends with 90% Credible Intervals
+By contrast, keyATM did successfully clusters references to Israel and Palestine into two main guided topics, plus a Legal Action topic emphasizing “hate,” “crime,” and “justice.” Notably, the Palestine topic ranks higher in overall prevalence, suggesting that parliamentary speeches mentioning “Palestine,” “gaza,” “refugee,” or “aid” appear more frequently than those discussing Israel’s security or military aspects. At the same time, some war-related language (e.g., “military,” “operation”) remains associated with the Israel topic. This indicates that while discussions of Israeli security do appear, humanitarian framing around Palestine currently dominates the guided portion of the corpus.
 
-```{r}
-# Store theta values to show credible intervals
-model_dynamic <- keyATM(
-  docs = keyATM_docs,
-  no_keyword_topics = 3,
-  keywords = keywords,
-  model = "dynamic",
-  model_settings = list(time_index = data$time_index, num_states = 5),
-  options = list(seed = 250, store_theta = TRUE, thinning = 5)
-)
+Despite this clarity in the guided topics, the five “Other” topics in keyATM still account for a large share of the text. Many speeches mention conflict-related terms in passing or focus on unrelated matters, such as domestic bills or indigenous issues, creating substantial noise for the model to absorb. The large “Other_5” category, for instance, includes general legislative words like “study,” “order,” or “issue,” illustrating how many speeches reference parliamentary process rather than focusing on the Israel–Palestine conflict. In addition, references to “Ukraine” and “humanitarian” appear in multiple topics, suggesting that members of Parliament sometimes conflate or juxtapose conflicts in different regions, or discuss humanitarian crises in broad terms.
 
-# Re-run time-series visualization with credible intervals
-fig_timetrend_credible <- plot_timetrend(
-  model_dynamic, time_index_label = data$speechdate, xlab = "Year"
-)
-fig_timetrend_credible
+In assessing the keyATM model, the model fit diagnostics (log-likelihood, perplexity, alpha plots) confirm that keyATM converges after around 1,000–1,200 iterations, suggesting a stable—though still somewhat coarse—set of topics. The top words for each guided topic generally align with the intended keywords, yet certain unexpected words appear (e.g., “Ukraine” in the Israel topic). This crossover indicates that members of Parliament often address multiple conflicts and humanitarian issues in a single debate; for instance, a speaker might move from discussing Israeli security to referencing the conflict in Ukraine, thereby introducing “Ukraine” into a primarily Israel-focused speech.
 
-# Save plot
-save_fig(fig_timetrend_credible, "figures/topic_trends_with_intervals.pdf", width = 7, height = 5)
+In summary, these findings demonstrate both the strengths and limitations of combining keyword guidance with an unsupervised approach. keyATM proves valuable for clustering speeches around user-defined topics of interest—such as Israel, Palestine, and legal/hate-crime frameworks—while still allowing additional topics to emerge. Nevertheless, a large proportion of the data remains outside the guided topics, highlighting that discussions of Israel–Palestine are often scattered among many other legislative concerns. Ultimately, these findings should be read as preliminary.
 
-```
+There are several ways this project could be extended or improved. First, incorporating sentiment analysis could add a layer of depth – for example, determining whether the tone around these topics is largely positive (e.g., celebratory during heritage moments) or negative (e.g., outrage in response to antisemitic acts). Visualizing sentiment trends could reveal if discourse is becoming more urgent or more positive over time. Second, we could enhance the temporal analysis by aligning it explicitly with events: an annotated timeline or an interactive dashboard could allow users to click on spikes and see a summary of what happened in that debate. Third, to address the data filtering limitation of the initial SQL query, a broader text analysis could be run on all speeches (not just keyword-filtered ones) using a different classification approach (e.g., LLMs) to catch implicit mentions of Israel-Palestine related policy discussions. On the visualization front, an interactive web-based visualization (using libraries like plotly or shiny in R) would allow stakeholders to explore the data dynamically, for example filtering by political party or by speaker to see if different groups have different patterns. We also acknowledge that our analysis looked at English terms; given Canada’s bilingual parliament, a next step could involve analyzing French speeches about Jewish topics (e.g., “juif”, “antisémitisme”) to see if similar trends hold.
 
-## 12. Party-wise Topic Differences
+# Conclusion
 
-### a) Analyzing Topic Proportions by Party
+The revised keyATM approach demonstrates the value of using a small set of keywords to cluster Hansard debates around Israel, Palestine, and legal references to hate crimes. Compared to a purely unsupervised LDA, keyATM ensures that relevant speeches are grouped together and labeled in a more interpretable manner. The data suggest that references to Palestinian humanitarian concerns may appear more frequently than those to Israeli security, although both guided topics remain overshadowed by large amounts of general parliamentary business. This indicates that while the House of Commons does address Israel–Palestine issues, much of the overall discourse concerns broader domestic affairs.
 
-```{r}
-# Compute topic proportions by party
-strata_topic <- by_strata_DocTopic(
-  model_covariate, by_var = "party",
-  labels = unique(data$party)
-)
+The approach presented here is still in development and will benefit from more sophisticated refinement of keywords, additional contextual analysis, and a deeper investigation of how speeches change over time or differ by political party. Nonetheless, the preliminary findings highlight the potential of keyword-assisted topic modeling for distilling vast parliamentary records into manageable thematic clusters that can inform policy analysis and further research.
 
-# Visualizing topic proportions per party
-fig_party_topics <- plot(strata_topic, var_name = "Party")
-fig_party_topics
+# **References**
 
-# Save figure
-save_fig(fig_party_topics, "figures/partywise_topic_distribution.pdf", width = 7, height = 5)
-```
+-   Eshima, S., Imai, K., & Sasaki, T. (2024). Keyword‐assisted topic models. *American Journal of Political Science*, *68*(2), 730–750. <https://doi.org/10.1111/ajps.12779>
 
-### b) Party-wise Topic Differences with 90% Credible Intervals
+# **Appendix**
 
-```{r}
-# Compute topic differences across parties
-theta_party_diff <- by_strata_DocTopic(
-  model_covariate, by_var = "party",
-  labels = unique(data$party)
-)
+## **Supplementary Materials**
 
-# Visualizing with confidence intervals
-fig_party_diff <- plot(theta_party_diff, var_name = "Party", by = "covariate")
-fig_party_diff
-
-# Save plot
-save_fig(fig_party_diff, "figures/partywise_topic_diff_intervals.pdf", width = 7, height = 5)
-```
-
-## 13. Per-Speaker Topic Analysis
-
-```{r}
-# Compute speaker-wise topic proportions
-speaker_topic_dist <- data %>%
-  mutate(speaker = as.factor(speakername)) %>%
-  group_by(speaker) %>%
-  summarize(across(starts_with("Topic_"), mean, na.rm = TRUE))
-
-# Convert to long format
-speaker_long <- speaker_topic_dist %>%
-  pivot_longer(cols = starts_with("Topic_"), names_to = "Topic", values_to = "Proportion")
-
-# Plot per-speaker topic proportions
-ggplot(speaker_long, aes(x = reorder(speaker, -Proportion), y = Proportion, fill = Topic)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Speaker-wise Topic Prevalence",
-       x = "Speaker", y = "Topic Proportion") +
-  coord_flip() +
-  theme_minimal()
-```
+-   The complete code used in this memo is publicly available at the following GitHub repository: <https://github.com/mcowan38/keyword_assisted_hansard>. This repository includes all scripts and materials necessary to replicate the analyses described in the paper.
