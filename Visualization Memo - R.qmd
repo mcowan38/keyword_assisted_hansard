@@ -142,6 +142,7 @@ dtm_clean <- convert(dfm_clean, to = "topicmodels")
 
 # Standard LDA
 lda_model <- LDA(
+  
   dtm_clean,
   k = 8,
   method = "VEM",
@@ -275,7 +276,7 @@ plot_pi(model_out)
 ## Table 2: keyATM Model Top Terms Table
 
 ```{r}
-# Extract top 20 words per topic from keyATM model
+# Extract top 10 words per topic from keyATM model
 top_terms <- top_words(model_out, n = 10)
 
 # Convert list to data frame (each topic as a column)
@@ -332,6 +333,7 @@ The approach presented here will benefit from more sophisticated refinement of k
 # **References**
 
 -   Eshima, S., Imai, K., & Sasaki, T. (2024). Keyword‐assisted topic models. *American Journal of Political Science*, *68*(2), 730–750. <https://doi.org/10.1111/ajps.12779>
+-   keyATM Development Team. (2024). *keyATM: Keyword-assisted topic models*. Retrieved from <https://keyatm.github.io/keyATM/index.html>
 
 # **Appendix**
 
