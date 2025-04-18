@@ -1,6 +1,0 @@
-"0","# Load Data (modify path as necessary)"
-"0","data <- read.csv(""./data/openparliament_keyATM.csv"", stringsAsFactors = FALSE)"
-"0","raw_docs <- readtext(""speeches_text/*.txt"", encoding = ""UTF-8"")"
-"0",""
-"0","# Convert to corpus"
-"0","key_corpus <- corpus(raw_docs, text_field = ""text"")"

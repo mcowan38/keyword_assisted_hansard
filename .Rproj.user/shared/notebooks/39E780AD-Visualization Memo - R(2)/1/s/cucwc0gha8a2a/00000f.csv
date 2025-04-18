@@ -1,3 +1,0 @@
-"0","# Check model fitting. If the model is working as expected, we would observe an increase trend for the log-likelihood and an decrease trend for the perplexity:"
-"0","fig_modelfit <- plot_modelfit(model_out)"
-"0","fig_modelfit"

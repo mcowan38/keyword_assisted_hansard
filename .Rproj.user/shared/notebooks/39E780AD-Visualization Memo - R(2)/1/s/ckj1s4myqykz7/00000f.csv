@@ -1,4 +1,0 @@
-"0","# Probability of words drawn from keyword topic-word distribution:"
-"0","plot_pi(model_out)"
-"2","[36mℹ[39m Plotting pi from the final MCMC draw. Please set `store_pi` to `TRUE` if you want to plot pi over iterations.
-"

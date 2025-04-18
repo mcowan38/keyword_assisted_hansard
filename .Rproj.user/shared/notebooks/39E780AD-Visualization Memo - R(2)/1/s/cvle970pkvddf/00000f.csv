@@ -1,2 +1,0 @@
-"0","# Visualize alpha, the prior for the document-topic distribution, and the probability that each topic uses keyword topic-word distribution. These should stabilize over time:"
-"0","plot_alpha(model_out)"
